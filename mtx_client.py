@@ -115,12 +115,12 @@ class Trough(object):
         self.sock = sock
         # Lock to serialize access from multiple threads
         self.lock = threading.Lock()
-        self.line_end = "\n"
+        self.line_end = b"\n"
 
     # --------------------------------------------------------------------------
     def _readline(self):
         """Read a line of text from the socket"""
-        s = ""
+        s = b""
         while True:
             rdata = self.sock.recv(1024)
             if len(rdata) == 0:
@@ -130,7 +130,7 @@ class Trough(object):
             # Check for complete line
             if s.endswith(self.line_end):
                 break
-        return s
+        return s.decode()
 
     # --------------------------------------------------------------------------
     def _parse_response(self, response):
@@ -179,7 +179,7 @@ class Trough(object):
         args = args[1:]
         cmd = " ".join([method] + [str(arg) for arg in args])
         with self.lock:
-            self.sock.send("call : " + cmd + "\n")
+            self.sock.send(("call : " + cmd + "\n").encode())
             response = self._readline()
 
         # Split the response into fields
@@ -211,7 +211,7 @@ class Trough(object):
     def get(self, prop):
         """Get a trough property"""
         with self.lock:
-            self.sock.send("get : " + prop + "\n")
+            self.sock.send(("get : " + prop + "\n").encode())
             response = self._readline()
 
         # Split the response into fields
@@ -233,7 +233,7 @@ class Trough(object):
         """Set a trough property"""
         cmd = "set : %s %s\n" % (prop, str(value))
         with self.lock:
-            self.sock.send(cmd)
+            self.sock.send(cmd.encode())
             response = self._readline()
 
         # Split the response into fields
@@ -255,7 +255,7 @@ class Trough(object):
         """Update a 'control' value in the server"""
         cmd = "ctrl : %s %s\n" % (ctrl, str(value))
         with self.lock:
-            self.sock.send(cmd)
+            self.sock.send(cmd.encode())
             response = self._readline()
 
         # Split the response into fields
