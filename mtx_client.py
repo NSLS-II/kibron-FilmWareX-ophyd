@@ -1,5 +1,5 @@
-__author__ = 'Pete Allinson, PGA Embedded Systems Ltd.  pete@pgaembeddedsystems.co.uk'
-__copyright__ = 'Copyright 2016 Kibron Inc., All Rights Reserved'
+__author__ = "Pete Allinson, PGA Embedded Systems Ltd.  pete@pgaembeddedsystems.co.uk"
+__copyright__ = "Copyright 2016 Kibron Inc., All Rights Reserved"
 
 """
 Remote Server Client.
@@ -46,23 +46,25 @@ DstTargetReached = 6
 DstBarrierInit = 7
 DstBarrierInitDone = 8
 
+
 def dst_to_str(i):
     """Convert device status value to string"""
     dst_strs = [
-            "Idle",
-            "Tensiometer",
-            "CompressionIsotherm",
-            "ConstantArea",
-            "ConstantPressure",
-            "Manual",
-            "TargetReached",
-            "BarrierInit",
-            "BarrierInitDone"
-        ]
+        "Idle",
+        "Tensiometer",
+        "CompressionIsotherm",
+        "ConstantArea",
+        "ConstantPressure",
+        "Manual",
+        "TargetReached",
+        "BarrierInit",
+        "BarrierInitDone",
+    ]
     try:
         return dst_strs[i]
     except IndexError:
         return "Invalid device status value: %s" % str(i)
+
 
 # Barrier direction codes
 # How to interpret the value at index 19 in the GetData result
@@ -73,16 +75,16 @@ StpStop = 0
 # Trough Error codes
 # How to interpret the value at index 21 in the GetData result
 # and the value at index 0 in any command result
-NoError = 0                  # No error
-EBusy = -1                   # Device is busy, executing a command *)
+NoError = 0  # No error
+EBusy = -1  # Device is busy, executing a command *)
 ECommandNotImplemented = -2  # Command not implemented
-ECommunicationFailure = -3   # Device did not send reply in time
-EConnectFailure = -4         # Can't connect to device
-EConnected = -5              # Communication port is active
-EComPortNotSet = -6          # Com port number is not set
-ENotConnected = -7           # Not connected to communication port
+ECommunicationFailure = -3  # Device did not send reply in time
+EConnectFailure = -4  # Can't connect to device
+EConnected = -5  # Communication port is active
+EComPortNotSet = -6  # Com port number is not set
+ENotConnected = -7  # Not connected to communication port
 EComPortCfgSaveFailure = -8  # Could not save communication port information
-ENoServerConnection = -9     # COM server not connected.
+ENoServerConnection = -9  # COM server not connected.
 
 # Trough measurement modes
 # The parameter to the NewMeasureMode command
@@ -100,23 +102,25 @@ MeHysteresis = 7
 class TroughError(Exception):
     """Exception raised when a trough command (call, get, set, ctrl)
     results in an error"""
+
     pass
 
 
 ###############################################################################
 class Trough(object):
     """Communications with trough across network"""
-    #--------------------------------------------------------------------------
+
+    # --------------------------------------------------------------------------
     def __init__(self, sock):
         self.sock = sock
         # Lock to serialize access from multiple threads
         self.lock = threading.Lock()
-        self.line_end = '\n'
+        self.line_end = "\n"
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def _readline(self):
         """Read a line of text from the socket"""
-        s = ''
+        s = ""
         while True:
             rdata = self.sock.recv(1024)
             if len(rdata) == 0:
@@ -128,7 +132,7 @@ class Trough(object):
                 break
         return s
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def _parse_response(self, response):
         """Parse response to trough command.  It's expected to have the form
         'OK: [ <status-code> [ <result-1> <result-2> ... ] ]'
@@ -137,29 +141,28 @@ class Trough(object):
         Raise TroughError exception if the response indicates an error.
         """
         try:
-            (ok, body) = response.split(':', 1)
+            (ok, body) = response.split(":", 1)
         except ValueError:
             # missing ':'
             raise TroughError(response)
-        if not ok.startswith('OK'):
+        if not ok.startswith("OK"):
             raise TroughError(response)
-        result = body.split(None) # split on whitespace, discarding empty strings
+        result = body.split(None)  # split on whitespace, discarding empty strings
 
         return result
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def _map_str_to_number(self, str_vals):
-
         def str_to_number(s):
             try:
                 # See if 's' can be converted to a number
-                if '.' in s:
+                if "." in s:
                     return float(s)
                 else:
                     return int(s)
             except ValueError:
                 # Now try a boolean
-                bools = { 'false': False, 'true': True }
+                bools = {"false": False, "true": True}
                 try:
                     b = bools[s.lower()]
                     return b
@@ -169,14 +172,14 @@ class Trough(object):
 
         return map(str_to_number, str_vals)
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def call(self, *args):
         """Call a trough method, with parameters"""
         method = args[0]
         args = args[1:]
-        cmd = ' '.join( [ method ] + [ str(arg) for arg in args ] )
+        cmd = " ".join([method] + [str(arg) for arg in args])
         with self.lock:
-            self.sock.send( 'call : ' + cmd + '\n' )
+            self.sock.send("call : " + cmd + "\n")
             response = self._readline()
 
         # Split the response into fields
@@ -185,10 +188,10 @@ class Trough(object):
         # Convert strings to numbers/bools where possible
         result = self._map_str_to_number(result)
 
-        if method == 'GetData':
+        if method == "GetData":
             # Keep the <status-code>.  It is the count of pending messages
             return result
-        elif method == 'DeviceIdentification':
+        elif method == "DeviceIdentification":
             # Keep the <status-code>.  It is actually part of the device identification
             return result
         elif len(result) == 0:
@@ -204,11 +207,11 @@ class Trough(object):
             # Drop the <status-code>, return the remaining list
             return result[1:]
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def get(self, prop):
         """Get a trough property"""
         with self.lock:
-            self.sock.send( 'get : ' + prop + '\n' )
+            self.sock.send("get : " + prop + "\n")
             response = self._readline()
 
         # Split the response into fields
@@ -219,16 +222,18 @@ class Trough(object):
 
         # There should be only one item in the result list
         if len(result) != 1:
-            raise TroughError("Property '%s' returned unexpected results:\n%s" % (prop, result))
+            raise TroughError(
+                "Property '%s' returned unexpected results:\n%s" % (prop, result)
+            )
 
         return result[0]
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def set(self, prop, value):
         """Set a trough property"""
-        cmd = 'set : %s %s\n' % ( prop, str(value) )
+        cmd = "set : %s %s\n" % (prop, str(value))
         with self.lock:
-            self.sock.send( cmd )
+            self.sock.send(cmd)
             response = self._readline()
 
         # Split the response into fields
@@ -239,16 +244,18 @@ class Trough(object):
 
         # The result list should be empty
         if len(result) != 0:
-            raise TroughError("Property '%s' returned unexpected results:\n%s" % (prop, result))
+            raise TroughError(
+                "Property '%s' returned unexpected results:\n%s" % (prop, result)
+            )
 
         return result
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def ctrl(self, ctrl, value):
         """Update a 'control' value in the server"""
-        cmd = 'ctrl : %s %s\n' % ( ctrl, str(value) )
+        cmd = "ctrl : %s %s\n" % (ctrl, str(value))
         with self.lock:
-            self.sock.send(  cmd )
+            self.sock.send(cmd)
             response = self._readline()
 
         # Split the response into fields
@@ -263,6 +270,7 @@ class Trough(object):
 ###############################################################################
 class PollDataError(Exception):
     """Error occurred while polling GetData."""
+
     def __init__(self, msg, data=[]):
         """
         msg - the message from GetData
@@ -290,7 +298,8 @@ class PollData(threading.Thread):
     After calling GetData to retrieve measurement data, datacb is called
     with the measurement data passed in as a list of lists.
     """
-    #--------------------------------------------------------------------------
+
+    # --------------------------------------------------------------------------
     def __init__(self, trough, interval=0.25, datacb=None, errcb=None):
         """
         trough - instance of Trough, for communicating with trough
@@ -311,30 +320,30 @@ class PollData(threading.Thread):
         self._error = False
         self._quit = False
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def run(self):
         while True:
             if not self._error:
                 try:
                     data = self.get_data()
                     if self.datacb:
-                        self.datacb( data )
+                        self.datacb(data)
                 except PollDataError as err:
                     self._error = True
                     if self.errcb:
-                        self.errorcb( str(err), err.data )
+                        self.errorcb(str(err), err.data)
 
             self._event.wait(self.interval)
             if self._quit:
                 break
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     @property
     def interval(self):
         """return the current poll interval"""
         return self._interval
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     @interval.setter
     def interval(self, interval):
         """Set the poll interval.  Wake the thread if the new interval is
@@ -344,34 +353,34 @@ class PollData(threading.Thread):
         if interval < self._interval:
             self._event.set()
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     @property
     def error(self):
         return self._error
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     @error.setter
     def error(self, value):
         self._error = value
         self._event.set()
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def quit(self):
         """Terminate the PollData task."""
         self._quit = True
         self._event.set()
         self.join()
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def get_data(self):
         data = []
         while True:
             try:
-                vals = self.trough.call('GetData')
+                vals = self.trough.call("GetData")
                 # Expecting the result to be of the form
                 #   '<status-code> <value-1> <value-2> ... <value-n>
                 # vals is list comprising staus code followed by list of values
-                data.append( vals )
+                data.append(vals)
                 count = vals[0]
                 if count == 0:
                     return data
