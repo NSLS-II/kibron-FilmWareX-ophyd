@@ -47,6 +47,14 @@ DstBarrierInit = 7
 DstBarrierInitDone = 8
 
 
+def connect(host, port):
+    sock = socket.create_connection((host, port))
+    prologue = sock.recv(1024).decode()
+    # TODO check that the prologue makes sense
+    print(prologue)
+    return sock
+
+
 def dst_to_str(i):
     """Convert device status value to string"""
     dst_strs = [
@@ -170,7 +178,7 @@ class Trough(object):
                     # Give up, return the original string
                     return s
 
-        return map(str_to_number, str_vals)
+        return tuple(map(str_to_number, str_vals))
 
     # --------------------------------------------------------------------------
     def call(self, *args):

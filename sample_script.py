@@ -62,16 +62,7 @@ args = get_options()
 HOST, PORT = args.host, args.port
 
 
-# Connect to server, read prologue
-try:
-    sock = socket.create_connection((HOST, PORT))
-except socket.error as err:
-    print("Failed to connect to server:\n", str(err))
-    sys.exit(1)
-prologue = sock.recv(1024)
-print(prologue)
-
-
+sock = mtx.connect(HOST, PORT)
 #
 # Connect to the trough interface
 #
