@@ -1,0 +1,9 @@
+[flake8]
+exclude =
+    .git,
+    __pycache__,
+    build,
+    dist,
+    docs/source/conf.py
+    docs/source/examples
+max-line-length = 115
