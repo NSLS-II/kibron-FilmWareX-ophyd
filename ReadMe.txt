@@ -195,4 +195,3 @@ The script does use Python 'exceptions' (for error handling) and 'contexts' (for
 locking access to files and sockets) but has otherwise been written with a
 minimum of Python features, so it should be straightforward to translate to
 other programming languages.
-

@@ -133,7 +133,7 @@ class Trough(object):
         """Parse response to trough command.  It's expected to have the form
         'OK: [ <status-code> [ <result-1> <result-2> ... ] ]'
         Check the response begins with 'OK:'.
-        Return a list containing the status-code and ant result fields. 
+        Return a list containing the status-code and ant result fields.
         Raise TroughError exception if the response indicates an error.
         """
         try:
@@ -377,4 +377,3 @@ class PollData(threading.Thread):
                     return data
             except TroughError as err:
                 raise PollDataError(str(err), data)
-

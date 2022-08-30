@@ -351,8 +351,8 @@ try:
         print(msg)
         trough_data.annotate(msg)
 
-        # Issue another StartMeasure (timestamps stopped advancing when the 
-        # target area area was reached) 
+        # Issue another StartMeasure (timestamps stopped advancing when the
+        # target area area was reached)
         now = time.time()               # seconds since the epoch
         trough_data.time_offset = now   # Will be added to all timestamps
         trough.call('StartMeasure')
@@ -412,7 +412,7 @@ except mtx.TroughError as err:
     sys.exit(1)
 
 
-# 
+#
 # Quit the PollData thread, close the data file
 poll_data.quit()
 trough_data.close()
