@@ -101,6 +101,7 @@ class TroughDataHelper(object):
                 sampled by the trough at the same time"""
         with self._flock:
             for measurement in data:
+                measurement = list(measurement) # convert a tuple to a list before processing
                 measurement[mtx.uTTime] += self._time_offset
                 count = measurement[0]
                 if count > 0:
